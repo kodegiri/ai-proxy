@@ -1,0 +1,45 @@
+# ── Universal AI Proxy + Open WebUI ──────────────────────────
+# Pull image dari ghcr.io setelah push, tidak perlu build lokal
+
+services:
+  ai-proxy:
+    image: ghcr.io/GITHUB_USERNAME/ai-proxy:latest
+    container_name: ai-proxy
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+
+      # ── Base44 ───────────────────────────────────────────
+      - BASE44_AGENT_ID=your_agent_id
+      - BASE44_API_KEY=your_base44_api_key
+
+      # ── OpenAI (opsional) ────────────────────────────────
+      # - OPENAI_API_KEY=sk-...
+      # - OPENAI_BASE_URL=https://api.openai.com/v1
+
+      # ── Anthropic (opsional) ─────────────────────────────
+      # - ANTHROPIC_API_KEY=sk-ant-...
+
+      # ── Custom OpenAI-compatible provider (opsional) ─────
+      # - CUSTOM_API_KEY=your_key
+      # - CUSTOM_BASE_URL=https://your-llm-server.com/v1
+      # - CUSTOM_PROVIDER_NAME=my-llm
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui-data:/app/backend/data
+    environment:
+      - OPENAI_API_BASE_URL=http://ai-proxy:4000/v1
+      - OPENAI_API_KEY=proxy-key
+    depends_on:
+      - ai-proxy
+
+volumes:
+  open-webui-data:
